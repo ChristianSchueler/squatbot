@@ -1,4 +1,4 @@
-// Karl-Isis the 25001 Cocktail Mixing Bot (c) 2022-2023 by Christian Schüler, christianschueler.at
+// SquatBot Cocktail Mixing Bot (c) 2023-2024 by Christian Schüler, christianschueler.at
 
 // references
 // - https://github.com/fivdi/onoff
@@ -15,7 +15,6 @@ const { app, BrowserWindow } = pkg;
 //import { app, BrowserWindow } from "electron";
 
 import { KarlIsisServer } from "./KarlIsisServer.js";
-import * as OpenAICocktailBot from './OpenAICocktailBot.js';
 import { CocktailDispenser } from './CocktailDispenser.js';
 import { CocktailRecipe } from './CocktailRecipe.js';
 import { CocktailButtons } from './CocktailButtons.js';
@@ -70,19 +69,7 @@ function isElectron() {
 // main entry point
 async function main() {
 
-	// button test
-	/*const button = new Gpio(4, 'in', 'rising', { debounceTimeout: 30 });
-	const led = new Gpio(17, 'out');
-	led.writeSync(0)
-	button.watch((err, value) => {
-		console.log("button:", value, err);
-		led.writeSync(value);
-	});*/
-
-	//let ai = new OpenAICocktailRecipes();
-	//await ai.test();
-
-	console.log("Karl-Isis the 25001 (c) 2022 - 2023 by Christian Schüler. Welcome.");
+	console.log("SquatBot (c) 2023-2024 by Christian Schüler. Welcome.");
 	console.log("Press Ctrl-C to exit.");
 
 	dotenv.config();	// move ENV variables from .env into NodeJS environment
@@ -94,12 +81,6 @@ async function main() {
 	}
 	else global.debug = false;
 
-	// gracefully stop if OpenAI API key not provided and help developer fix it
-	if (process.env.OPENAI_API_KEY == undefined) {
-		console.log("OpenAI API key not defined. Please set OPENAI_API_KEY environment variable. Exiting.");
-		process.exit(1);
-	} 
-
 	// used for storing the current recipe
 	let recipe: CocktailRecipe;
 
@@ -110,78 +91,12 @@ async function main() {
 	await buttons.ledsOff();		// turn off the lights
 	await buttons.ledOn(1);
 	await buttons.ledOn(2);
-		
-	// AI cocktail
-	buttons.onButton1 = async () => {
-		buttons.enabled = false;		// disable buttons again to prevent pressing again
-
-		await buttons.ledsOff();		// turn off the lights
-		buttons.ledBlinkContinuous(1, 100);		// dont await...
-		buttons.ledBlinkContinuous(2, 100);
-
-		recipe = await bot.pourMeADrink();
-		console.log(recipe.toString(cocktailDispenser));
-		if (!recipe.isValid()) {
-			console.log("error, invalid recipe, maybe wrong formatting by GPT. I'll get you a radnom cocktail");
-			recipe = CocktailRecipe.randomRecipe(true, 2, 4);
-		}
-
-		// et voilà
-		await cocktailDispenser.dispenseRecipe(recipe); 
-
-		await buttons.ledBlinkStopContinuous(1);
-		await buttons.ledBlinkStopContinuous(2);
-		await buttons.ledsOff();
-
-		console.log('Dispensing finished.');
-		
-		// ROBOEXOTICA
-		buttons.enabled = true;
-		
-		await sleep(500);
-		await buttons.ledOn(1);
-		await buttons.ledOn(2);
-		};
-
-	// non-alcoholic cocktail
-	buttons.onButton2 = async () => {
-		buttons.enabled = false;		// disable buttons again to prevent pressing again
-
-		await buttons.ledsOff();		// turn off the lights
-		buttons.ledBlinkContinuous(1, 100);		// dont await...
-		buttons.ledBlinkContinuous(2, 100);
-
-		recipe = CocktailRecipe.randomRecipe(false);
-		console.log(recipe.toString(cocktailDispenser));
-
-		// et voilà
-		await cocktailDispenser.dispenseRecipe(recipe);
-
-		await buttons.ledBlinkStopContinuous(1);
-		await buttons.ledBlinkStopContinuous(2);
-		await buttons.ledsOff();
-
-		console.log('Dispensing finished.');
-		
-		// ROBOEXOTICA
-		buttons.enabled = true;
-		
-		await sleep(500);
-		await buttons.ledOn(1);
-		await buttons.ledOn(2);
-		};
 
 	// set up dispenser hardware
 	let cocktailDispenser = new CocktailDispenser();
 	const ingredients = cocktailDispenser.getIngredientList();
 
-	// set up OpenAI cocktail recipe generator
-	let bot = new OpenAICocktailBot.OpenAICocktailBot("alcohol", ingredients, OpenAICocktailBot.AISystem.PreventAlcoholicGpt, { apiKey: process.env.OPENAI_API_KEY, organization: process.env.OPENAI_ORGANIZATION, model: "gpt-3.5-turbo-1106" });
-
 	console.log("f1...f12 start/stop dispensing");
-	console.log("a        AI cocktail");
-	console.log("r        (r)andom cocktail");
-	console.log("n        random (n)icolas cocktail with alcohol");
 	console.log("Ctrl-c   quit");
 
 	// ***** main loop starts here
@@ -193,7 +108,7 @@ async function main() {
 	process.stdin.on('keypress', async (key, data) => {
 		// check for abort Ctrl-C
 		if (data.ctrl && data.name === 'c') {
-			console.log("Exiting Karl-Isis the 25001. Have a nice day, bye-bye.");
+			console.log("Exiting SquatBot. Have a nice day, bye-bye.");
 			process.exit();
 		}
 		
@@ -212,42 +127,6 @@ async function main() {
 			case "f10": cocktailDispenser.togglePump(9); break;
 			case "f11": cocktailDispenser.togglePump(10); break;
 			case "f12": cocktailDispenser.togglePump(11); break;
-
-			case "a":		// AI cocktail
-				console.log("AI cocktail");
-				
-				recipe = await bot.pourMeADrink();
-				console.log(recipe.toString(cocktailDispenser));
-				if (!recipe.isValid()) {
-					console.log("error, invalid recipe, maybe wrong formatting by GPT. I'll get you a radnom cocktail");
-					recipe = CocktailRecipe.randomRecipe(true, 2, 4);
-				}
-	
-				// et voilà
-				await cocktailDispenser.dispenseRecipe(recipe); 
-	
-				console.log('Dispensing finished.');
-			break;
-	
-			case "r":		// random
-				recipe = CocktailRecipe.randomRecipe(true, 2, 4);
-				console.log(recipe.toString(cocktailDispenser));
-	
-				// et voilà
-				await cocktailDispenser.dispenseRecipe(recipe);
-	
-				console.log('Dispensing finished.');
-			break;
-
-			case "n":		// Nicolas alcohol-free random cocktails
-				recipe = CocktailRecipe.randomRecipe(false);
-				console.log(recipe.toString(cocktailDispenser));
-	
-				// et voilà
-				await cocktailDispenser.dispenseRecipe(recipe);
-	
-				console.log('Dispensing finished.');
-			break;
 		}
 	});
 

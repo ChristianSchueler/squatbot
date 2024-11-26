@@ -1,11 +1,11 @@
-# Karl-Isis the 25001 - AI powered cocktail bot
-Source code for Cocktail Robot for Roboexotica 2023, see  [christianschueler.at/technologie/karl-isis-der-250100-ki-cocktail-bot/](https://christianschueler.at/technologie/karl-isis-der-250100-ki-cocktail-bot/)
+# SquatBot - Get fit with your cocktail bot
+Source code for Cocktail Robot for Roboexotica, see  [christianschueler.at](https://christianschueler.at/)
 
-(c) 2023 Christian Schüler, [christianschueler.at](http://christianschueler.at/)
+(c) 2023-2024 Christian Schüler, [christianschueler.at](http://christianschueler.at/)
 
-Using TypeScript, Electron, Google Media Pipe (vision), Socket.IO, onoff and of course OpenAI API.
+Using TypeScript, Electron, Google Media Pipe (vision), Socket.IO, onoff.
 
-This is the main repo of the Karl-Isis the 25001 cocktail mixing robot.
+This is the main repo of the SquatBot cocktail mixing robot.
 
 ### Prerequisites
 
